@@ -25,7 +25,7 @@ export default function RegisterForm() {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/login`, // redirect after confirmation
+        emailRedirectTo: `${window.location.origin}/auth/login`, // Supabase redirect after confirmation
       },
     });
 
@@ -35,6 +35,11 @@ export default function RegisterForm() {
       setMessage(
         "✅ We've sent you a confirmation email. Please check your inbox and verify your account before logging in."
       );
+
+      // Auto redirect to login page after 4s
+      setTimeout(() => {
+        router.push("/auth/login");
+      }, 4000);
     }
 
     setLoading(false);
