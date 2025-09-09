@@ -1,50 +1,127 @@
 "use client";
 
-import { useState } from "react";
+import { useState, FC, ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { createClient } from "@supabase/supabase-js";
 
-// setup supabase client (or import from your utils)
+// --- Constants ---
+const SEVEN_DAYS_IN_MS = 7 * 24 * 60 * 60 * 1000;
+const MIN_OPTIONS = 2;
+
+// --- Supabase Client ---
+// Ideally, this would be in a separate file (e.g., src/lib/supabase.ts)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default function CreatePollPage() {
+// --- Type Definitions ---
+interface PollOption {
+  text: string;
+}
+
+// --- Reusable UI Components ---
+
+interface InputProps {
+  value: string;
+  onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  placeholder: string;
+  required?: boolean;
+  type?: string;
+  className?: string;
+}
+
+const Input: FC<InputProps> = ({ type = "text", ...props }) => (
+  <input {...props} type={type} />
+);
+
+const TextArea: FC<InputProps> = (props) => <textarea {...props} />;
+
+interface ButtonProps {
+  onClick?: () => void;
+  type?: "button" | "submit" | "reset";
+  disabled?: boolean;
+  children: React.ReactNode;
+  className?: string;
+}
+
+const Button: FC<ButtonProps> = ({
+  type = "button",
+  children,
+  ...props
+}) => (
+  <button {...props} type={type}>
+    {children}
+  </button>
+);
+
+// --- Poll Creation Components ---
+
+interface OptionInputProps {
+  option: PollOption;
+  index: number;
+  handleOptionChange: (index: number, value: string) => void;
+}
+
+const OptionInput: FC<OptionInputProps> = ({
+  option,
+  index,
+  handleOptionChange,
+}) => (
+  <Input
+    value={option.text}
+    onChange={(e) => handleOptionChange(index, e.target.value)}
+    placeholder={`Option ${index + 1}`}
+    required={index < MIN_OPTIONS}
+    className="w-full border p-2 rounded mb-2"
+  />
+);
+
+const CreatePollPage: FC = () => {
   const { user } = useAuth();
   const router = useRouter();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [options, setOptions] = useState(["", ""]); // default 2 empty options
-  const [expiresAt, setExpiresAt] = useState(""); // NEW: store expiry input
+  const [options, setOptions] = useState<PollOption[]>([
+    { text: "" },
+    { text: "" },
+  ]);
+  const [expiresAt, setExpiresAt] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleAddOption = () => setOptions([...options, ""]);
-  const handleOptionChange = (i: number, value: string) => {
+  const handleAddOption = () => {
+    setOptions([...options, { text: "" }]);
+  };
+
+  const handleOptionChange = (index: number, value: string) => {
     const newOptions = [...options];
-    newOptions[i] = value;
+    newOptions[index] = { text: value };
     setOptions(newOptions);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!user) return setError("You must be logged in to create a poll");
-    if (!title.trim() || options.filter((o) => o.trim()).length < 2) {
-      return setError("Poll must have a title and at least 2 options");
+    if (!user) {
+      setError("You must be logged in to create a poll.");
+      return;
+    }
+
+    const validOptions = options.filter((o) => o.text.trim());
+    if (!title.trim() || validOptions.length < MIN_OPTIONS) {
+      setError(`A poll must have a title and at least ${MIN_OPTIONS} options.`);
+      return;
     }
 
     setLoading(true);
     setError(null);
 
     try {
-      // ✅ fallback expiry = now + 7 days
       const expiresAtValue =
-        expiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+        expiresAt || new Date(Date.now() + SEVEN_DAYS_IN_MS).toISOString();
 
-      // 1. Insert poll
       const { data: poll, error: pollError } = await supabase
         .from("polls")
         .insert([
@@ -60,18 +137,16 @@ export default function CreatePollPage() {
 
       if (pollError) throw pollError;
 
-      // 2. Insert poll options
-      const validOptions = options.filter((o) => o.trim() !== "");
       const { error: optionError } = await supabase.from("poll_options").insert(
         validOptions.map((opt) => ({
           poll_id: poll.id,
-          option_text: opt,
+          option_text: opt.text,
         }))
       );
 
       if (optionError) throw optionError;
 
-      router.push("/"); // redirect to home (or poll page)
+      router.push("/");
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -86,26 +161,24 @@ export default function CreatePollPage() {
       {error && <p className="text-red-500 mb-2">{error}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          placeholder="Poll Title"
+        <Input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full border p-2 rounded"
+          placeholder="Poll Title"
           required
+          className="w-full border p-2 rounded"
         />
 
-        <textarea
-          placeholder="Description (optional)"
+        <TextArea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          placeholder="Description (optional)"
           className="w-full border p-2 rounded"
         />
 
-        {/* ✅ Expiration Date input */}
         <div>
           <label className="block font-medium mb-1">Expires At</label>
-          <input
+          <Input
             type="datetime-local"
             value={expiresAt}
             onChange={(e) => setExpiresAt(e.target.value)}
@@ -118,34 +191,32 @@ export default function CreatePollPage() {
 
         <div>
           <h2 className="font-semibold mb-2">Options</h2>
-          {options.map((opt, i) => (
-            <input
+          {options.map((option, i) => (
+            <OptionInput
               key={i}
-              type="text"
-              placeholder={`Option ${i + 1}`}
-              value={opt}
-              onChange={(e) => handleOptionChange(i, e.target.value)}
-              className="w-full border p-2 rounded mb-2"
-              required={i < 2} // first 2 must be filled
+              option={option}
+              index={i}
+              handleOptionChange={handleOptionChange}
             />
           ))}
-          <button
-            type="button"
+          <Button
             onClick={handleAddOption}
             className="px-3 py-1 bg-gray-200 rounded"
           >
             + Add Option
-          </button>
+          </Button>
         </div>
 
-        <button
+        <Button
           type="submit"
           disabled={loading}
           className="w-full bg-blue-600 text-white p-2 rounded"
         >
           {loading ? "Creating..." : "Create Poll"}
-        </button>
+        </Button>
       </form>
     </main>
   );
-}
+};
+
+export default CreatePollPage;
