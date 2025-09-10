@@ -1,8 +1,30 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🗳️ Supabase Polling App  
 
-## Getting Started
+A real-time polling application built with **Next.js, Supabase, and Go APIs**.  
+This project demonstrates my ability to design **secure backend systems, scalable APIs, and real-time database features**.  
 
-First, run the development server:
+---
+
+## 🚀 Features  
+- 🔐 **Authentication & Authorization** with Supabase Auth  
+- 📊 **Create & Manage Polls** with multiple options  
+- ⚡ **Real-Time Voting** powered by Supabase subscriptions  
+- 🛡️ **Role-Based Access Control** (admins vs. users)  
+- 📈 **Results Dashboard** with live updates  
+
+---
+
+## 🛠️ Tech Stack  
+- **Frontend:** Next.js 14, TailwindCSS  
+- **Backend APIs:** Go  
+- **Database & Auth:** Supabase (PostgreSQL)  
+- **Hosting:** Vercel + Supabase  
+
+---
+
+## ⚙️ Getting Started  
+
+First, run the development server:  
 
 ```bash
 npm run dev
@@ -12,25 +34,38 @@ yarn dev
 pnpm dev
 # or
 bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+📂 Project Structure
+/app        → Next.js pages & components
+/api        → Go API endpoints
+/db         → Supabase schema & migrations
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+📈 Roadmap
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+ Add analytics dashboard (votes over time, participation trends)
 
-## Learn More
+ Dockerize the app for production
 
-To learn more about Next.js, take a look at the following resources:
+ Expand OAuth providers for authentication
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+🧑‍💻 My Role & Learning
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+This project highlights my backend engineering skills in:
 
-## Deploy on Vercel
+Designing real-time, database-driven applications
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Building secure APIs with authentication/authorization
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Managing scalable backend systems with Supabase & PostgreSQL
+
+Integrating frontend and backend seamlessly with Next.js
+
+📜 License
+
+This project is licensed under the MIT License.
+
+---
+
+✅ This way, you don’t lose the *Next.js setup instructions*, but you elevate the README into a **flagship showcase** that makes your repo recruiter-friendly.  
+
+Do you want me to also write you a **short “Repo Tagline” (under 80 chars)** you can put in the repo description field (above the README) so recruiters instantly know what it is *before* they click in?
